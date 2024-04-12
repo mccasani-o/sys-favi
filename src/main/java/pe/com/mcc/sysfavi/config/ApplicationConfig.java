@@ -8,13 +8,11 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import pe.com.mcc.sysfavi.repository.UsuarioRepository;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,18 +25,13 @@ import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
-    private final UsuarioRepository repository;
+    private final UserDetailsService detailsService;
 
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return username -> repository.findByUsuario(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService());
+        authProvider.setUserDetailsService(detailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }

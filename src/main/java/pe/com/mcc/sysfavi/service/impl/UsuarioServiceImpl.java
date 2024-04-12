@@ -6,10 +6,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pe.com.mcc.sysfavi.config.JwtService;
+import pe.com.mcc.sysfavi.model.UsuarioPrincipal;
 import pe.com.mcc.sysfavi.model.entity.Role;
 import pe.com.mcc.sysfavi.model.entity.UsuarioEntity;
 import pe.com.mcc.sysfavi.model.request.LoginRequest;
@@ -21,12 +21,13 @@ import pe.com.mcc.sysfavi.service.UsuarioService;
 
 @Service
 @RequiredArgsConstructor
-public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
+public class UsuarioServiceImpl implements UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final UserDetailsService detailsService;
 
     @Override
     public void registrarUsuario(RegistroRequest request) {
@@ -46,26 +47,24 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 request.getUsuario(),
                 request.getClave()));
-        var usuario = this.usuarioRepository.findByUsuario(request.getUsuario()).orElseThrow();
-        var jwtToken = jwtService.generateToken(usuario);
-        return LoginResponse.builder().jwt(jwtToken).nombreUsuario(usuario.getNombre()).build();
+        UserDetails userDetails = this.detailsService.loadUserByUsername(request.getUsuario());
+        var jwtToken = jwtService.generateToken(userDetails);
+        return LoginResponse.builder().jwt(jwtToken).nombreUsuario(userDetails.getUsername()).build();
     }
 
     @Override
     public UsuarioResponse usuarioLogeado() {
         UsernamePasswordAuthenticationToken authenticationToken = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        UsuarioEntity entityUser = (UsuarioEntity) authenticationToken.getPrincipal();
-        return UsuarioResponse.builder().usuario(entityUser.getUsuario())
-                .clave(entityUser.getClave())
-                .nombre(entityUser.getNombre())
-                .estado(entityUser.getEstado())
-                .mfaEnabled(entityUser.isMfaEnabled())
-                .roles(entityUser.getRoles().name())
+        UsuarioPrincipal usuarioPrincipal = (UsuarioPrincipal) authenticationToken.getPrincipal();
+
+        return UsuarioResponse.builder().usuario(usuarioPrincipal.getUsuarioEntity().getUsuario())
+                .clave(usuarioPrincipal.getUsuarioEntity().getClave())
+                .nombre(usuarioPrincipal.getUsuarioEntity().getNombre())
+                .estado(usuarioPrincipal.getUsuarioEntity().getEstado())
+                .mfaEnabled(usuarioPrincipal.getUsuarioEntity().isMfaEnabled())
+                .roles(usuarioPrincipal.getUsuarioEntity().getRoles().name())
                 .build();
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return this.usuarioRepository.findByUsuario(username).orElseThrow();
-    }
+
 }

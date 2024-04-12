@@ -1,11 +1,13 @@
 package pe.com.mcc.sysfavi.model.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 @Data
 @Builder
@@ -13,7 +15,9 @@ import java.util.Collection;
 @AllArgsConstructor
 @Entity
 @Table(name = "TBL_USUARIOS")
-public class UsuarioEntity implements UserDetails {
+public class UsuarioEntity implements Serializable {
+
+    private static final long serialVersionUID = 2405172041950251807L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long idUsuario;
@@ -26,38 +30,5 @@ public class UsuarioEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role roles;
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.roles.getAuthorities();
-    }
 
-    @Override
-    public String getPassword() {
-        return this.clave;
-    }
-
-    @Override
-    public String getUsername() {
-        return this.usuario;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
 }
