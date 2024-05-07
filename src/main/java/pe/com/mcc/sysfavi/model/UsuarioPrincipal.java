@@ -5,10 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import pe.com.mcc.sysfavi.model.entity.UsuarioEntity;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Builder
 @Data
@@ -17,11 +20,17 @@ import java.util.Collection;
 public class UsuarioPrincipal implements UserDetails {
 
 
-    private  UsuarioEntity usuarioEntity;
+    private UsuarioEntity usuarioEntity;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.usuarioEntity.getRoles().getAuthorities();
+        List<SimpleGrantedAuthority> authorityList = new ArrayList<>();
+        usuarioEntity.getRoles().forEach(role -> authorityList.add(new SimpleGrantedAuthority("ROLE_".concat(role.getRolTipo().name()))));
+
+        usuarioEntity.getRoles().stream().flatMap(role -> role.getPermissionList().stream())
+                .forEach(permission -> authorityList.add(new SimpleGrantedAuthority(permission.getName())));
+
+        return authorityList;
     }
 
     @Override
@@ -56,7 +65,7 @@ public class UsuarioPrincipal implements UserDetails {
 
     public static UsuarioPrincipal buildUsuarioPrincipal(UsuarioEntity usuario) {
         UsuarioEntity usuarioEntity = UsuarioEntity.builder()
-                .idUsuario(usuario.getIdUsuario())
+                .id(usuario.getId())
                 .usuario(usuario.getUsuario())
                 .clave(usuario.getClave())
                 .nombre(usuario.getNombre())

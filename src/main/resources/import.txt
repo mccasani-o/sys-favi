@@ -1,0 +1,9 @@
+INSERT INTO roles(role_name) VALUES ( 'USER');
+INSERT INTO roles(role_name) VALUES ( 'INVITED');
+INSERT INTO roles(role_name) VALUES ( 'ADMIN');
+INSERT INTO roles(role_name) VALUES ( 'DEVELOPER');
+
+INSERT INTO permissions(name)VALUES ('READ');
+INSERT INTO permissions(name)VALUES ('CREATE');
+INSERT INTO permissions(name)VALUES ('UPDATE');
+INSERT INTO permissions(name)VALUES ('DELETE');

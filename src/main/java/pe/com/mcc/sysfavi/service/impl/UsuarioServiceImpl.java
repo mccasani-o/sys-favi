@@ -10,7 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pe.com.mcc.sysfavi.config.JwtService;
 import pe.com.mcc.sysfavi.model.UsuarioPrincipal;
-import pe.com.mcc.sysfavi.model.entity.Role;
+import pe.com.mcc.sysfavi.model.entity.PermissionEntity;
 import pe.com.mcc.sysfavi.model.entity.UsuarioEntity;
 import pe.com.mcc.sysfavi.model.request.LoginRequest;
 import pe.com.mcc.sysfavi.model.request.RegistroRequest;
@@ -18,6 +18,9 @@ import pe.com.mcc.sysfavi.model.response.LoginResponse;
 import pe.com.mcc.sysfavi.model.response.UsuarioResponse;
 import pe.com.mcc.sysfavi.repository.UsuarioRepository;
 import pe.com.mcc.sysfavi.service.UsuarioService;
+
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,13 +34,14 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public void registrarUsuario(RegistroRequest request) {
+
         UsuarioEntity usuarioEntity = UsuarioEntity.builder()
                 .usuario(request.getUsuario())
                 .clave(this.passwordEncoder.encode(request.getClave()))
                 .nombre(request.getNombre())
                 .estado("1")
                 .mfaEnabled(false)
-                .roles(Role.ADMIN)
+                .roles(null)
                 .build();
         this.usuarioRepository.save(usuarioEntity);
     }
@@ -56,13 +60,13 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioResponse usuarioLogeado() {
         UsernamePasswordAuthenticationToken authenticationToken = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
         UsuarioPrincipal usuarioPrincipal = (UsuarioPrincipal) authenticationToken.getPrincipal();
-
+        usuarioPrincipal.getUsuarioEntity().getRoles().stream().findFirst().get().getPermissionList().stream().sorted(Comparator.comparing(PermissionEntity::getId));
         return UsuarioResponse.builder().usuario(usuarioPrincipal.getUsuarioEntity().getUsuario())
                 .clave(usuarioPrincipal.getUsuarioEntity().getClave())
                 .nombre(usuarioPrincipal.getUsuarioEntity().getNombre())
                 .estado(usuarioPrincipal.getUsuarioEntity().getEstado())
                 .mfaEnabled(usuarioPrincipal.getUsuarioEntity().isMfaEnabled())
-                .roles(usuarioPrincipal.getUsuarioEntity().getRoles().name())
+                .roles(usuarioPrincipal.getUsuarioEntity().getRoles())
                 .build();
     }
 

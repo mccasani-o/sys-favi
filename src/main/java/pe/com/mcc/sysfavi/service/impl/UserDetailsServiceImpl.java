@@ -14,9 +14,11 @@ import pe.com.mcc.sysfavi.repository.UsuarioRepository;
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UsuarioRepository usuarioRepository;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UsuarioEntity usuarioEntity= this.usuarioRepository.findByUsuario(username).orElseThrow();
-        return  UsuarioPrincipal.buildUsuarioPrincipal(usuarioEntity) ;
+        UsuarioEntity usuarioEntity = this.usuarioRepository.findByUsuario(username).orElseThrow();
+
+        return UsuarioPrincipal.buildUsuarioPrincipal(usuarioEntity);
     }
 }
